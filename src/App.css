@@ -516,3 +516,30 @@ body {
     align-items: flex-start;
   }
 }
+/* ── STATUS (self-hosted patch) ── */
+.action-info {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 12px;
+}
+
+.status {
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.5;
+  max-width: 380px;
+}
+
+.status-busy { color: var(--accent2); }
+.status-done { color: #1a7f37; }
+.status-error { color: var(--accent); }
+
+.btn-translate:disabled {
+  background: var(--accent2);
+  cursor: progress;
+}
+
+.btn-download.is-disabled {
+  color: var(--muted);
+}
