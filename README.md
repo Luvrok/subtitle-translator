@@ -1,54 +1,44 @@
 # Subtitle Translator
 
-A React app for translating `.srt` subtitle files using the [LibreTranslate](https://libretranslate.com/) API. Upload a subtitle file, pick your source and target languages, translate, and download the result.
+A page for translating `.srt` subtitle files: add up to 10 files, pick the languages, and they are
+translated one by one; each file can be downloaded as soon as it is done. Dark and light gruvbox themes.
 
-## UI
+Translation engines:
 
-### Previous UI
-![image](https://user-images.githubusercontent.com/79476502/203831810-64542e34-1e54-4eaf-bd0d-9d3d4474a68a.png)
+- **Google Translate** (default): Google's free endpoint, called straight from the visitor's browser,
+  so there is nothing to set up and the site's server does no work. If the browser can't reach Google,
+  the page asks it through `/api/google` on the site's server.
+- **LibreTranslate on your own address**: also called from the browser, so a server on your
+  `localhost` works too. LibreTranslate allows that (CORS) out of the box.
+- **LibreTranslate of this site**: leave the address empty. Goes through the site's backend, which
+  queues files for its CPU; needs an API key from the site's owner.
 
-### Updated UI
+## How it works
 
-<img width="1592" height="909" alt="image" src="https://github.com/user-attachments/assets/49d83f0e-9682-4184-89db-56756ad8444e" />
+All engines share [`lib/srt.mjs`](lib/srt.mjs), which decides what goes to the translator and puts the
+translation back around the timecodes. The backend, [`server/server.mjs`](server/server.mjs) (Node, no
+dependencies), runs next to the site's LibreTranslate. It:
 
-The updated UI features:
-- Dark header and footer with a branded logo
-- Card-based layout with a bold editorial style (Syne + DM Mono fonts)
-- Step-by-step flow: upload file → select input language → select output language → translate & download
-- Language badge that updates live as you select
-- Animated fade-in sections
-- Fully responsive — stacks to a single column on mobile
+- serves the built page and proxies LibreTranslate, so the browser never needs CORS or a public LibreTranslate;
+- translates only the cue text, so numbering and timecodes stay untouched; formatting tags are
+  kept out of the model and put back, dialogue lines are translated one by one;
+- sends every repeated line once and caches translations, so a restarted file or the next episode is faster;
+- keeps one queue for all visitors, so the CPU works on one file at a time;
+- streams progress back as NDJSON: `{"queue":2}`, `{"progress":3,"total":16}`, then `{"translatedText":…}` or `{"error":…}`.
 
-## Getting Started
+Settings are environment variables at the top of `server/server.mjs` (`LT_URL`, `BASE_PATH`, `PARALLEL_BATCHES`, …).
+Every visitor enters their own LibreTranslate API key; it is stored only in their browser.
 
-### Prerequisites
+Files that are not UTF-8 or UTF-16 are decoded with the Windows code page of the chosen source
+language (cp1251 for Russian, cp1252 for Western European languages and so on). With auto-detect,
+cp1251 is picked when the file looks Cyrillic and cp1252 otherwise.
 
-- Node.js
-- A running [LibreTranslate](https://github.com/LibreTranslate/LibreTranslate) instance (or use `https://libretranslate.de`)
-- A local backend on `http://localhost:9000` to handle file download
-
-### Install & Run
+## Development
 
 ```bash
 npm install
-npm start
+LT_URL=http://127.0.0.1:5000 npm run serve   # backend on :5390
+npm run dev                                   # page with hot reload, /api goes to the backend
+PUBLIC_URL=/subtitle-translator npm run build # production build into build/, for a sub-path
+STATIC_DIR=build BASE_PATH=/subtitle-translator npm run serve
 ```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## How It Works
-
-1. Upload an `.srt` file
-2. Select the source language
-3. Select the target language
-4. Click Translate — the app sends the file content to LibreTranslate
-5. The translated text is posted to the local backend (`localhost:9000`) for download
-6. Click Download to grab the translated `.srt`
-
-## Available Scripts
-
-| Command | Description |
-|---|---|
-| `npm start` | Runs the app in development mode |
-| `npm run build` | Builds for production |
-| `npm test` | Runs the test suite |

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%BASE_URL%favicon.ico" sizes="32x32" />
+    <link rel="icon" href="%BASE_URL%favicon.svg" type="image/svg+xml" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#171717" />
+    <script>
+      // pick the theme before the first paint: saved choice, else the system's
+      (() => {
+        let theme;
+        try { theme = localStorage.getItem('subtitle-translator-theme'); } catch {}
+        if (theme !== 'light' && theme !== 'dark') theme = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        document.documentElement.dataset.theme = theme;
+        if (theme === 'light') document.querySelector('meta[name="theme-color"]').setAttribute('content', '#fbf1c7');
+      })();
+    </script>
+    <meta name="description" content="Translate .srt subtitle files with LibreTranslate" />
+    <link rel="apple-touch-icon" href="%BASE_URL%logo192.png" />
+    <link rel="manifest" href="%BASE_URL%manifest.json" />
+    <title>Subtitle Translator</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
